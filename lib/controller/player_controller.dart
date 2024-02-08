@@ -1,8 +1,9 @@
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:audioplayers/audioplayers_api.dart';
+// import 'package:audioplayers/audioplayers_api.dart';
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:learn_music/model/enums/media_type.dart';
 import 'package:learn_music/model/raw_model/song.dart';
 import 'package:learn_music/views/player_view.dart';
@@ -12,7 +13,10 @@ class MyPlayerController extends StatefulWidget {
   final List<Song> playlist;
   final Color backgroundColor;
 
-  const MyPlayerController({required this.songToPlay, required this.playlist, required this.backgroundColor});
+  const MyPlayerController(
+      {required this.songToPlay,
+      required this.playlist,
+      required this.backgroundColor});
   @override
   MyPlayerControllerState createState() => MyPlayerControllerState();
 }
@@ -42,20 +46,20 @@ class MyPlayerControllerState extends State<MyPlayerController> {
 
   @override
   Widget build(BuildContext context) => PlayerView(
-      song: song,
-    onRepeatPressed: onRepeatPressed,
-    onShufflePressed: onShufflePressed,
-    onRewindPressed: onRewindPressed,
-    onPlayPausePressed: onPlayPausePressed,
-    onForwardPressed: onForwardPressed,
-    onPositionChanged: onPositionChanged,
-    position: position,
-    maxDuration: maxDuration,
-    repeat: repeat,
-    shuffle: playShuffle,
-    playPauseIcon: iconData,
-    backgroundColor: widget.backgroundColor,
-  );
+        song: song,
+        onRepeatPressed: onRepeatPressed,
+        onShufflePressed: onShufflePressed,
+        onRewindPressed: onRewindPressed,
+        onPlayPausePressed: onPlayPausePressed,
+        onForwardPressed: onForwardPressed,
+        onPositionChanged: onPositionChanged,
+        position: position,
+        maxDuration: maxDuration,
+        repeat: repeat,
+        shuffle: playShuffle,
+        playPauseIcon: iconData,
+        backgroundColor: widget.backgroundColor,
+      );
 
   onPositionChanged(double newPosition) {
     final newDuration = Duration(seconds: newPosition.toInt());
@@ -65,17 +69,34 @@ class MyPlayerControllerState extends State<MyPlayerController> {
   onPlayPausePressed() async {
     final state = audioPlayer.state;
     switch (state) {
-      case PlayerState.COMPLETED:
-        (repeat) ? audioPlayer.seek(const Duration(seconds: 0)): onForwardPressed();
+      case PlayerState.completed:
+        (repeat)
+            ? audioPlayer.seek(const Duration(seconds: 0))
+            : onForwardPressed();
         break;
-      case PlayerState.STOPPED:
+      case PlayerState.stopped:
         setupPlayer();
         break;
-      case PlayerState.PLAYING:
+      case PlayerState.playing:
         await audioPlayer.pause();
         break;
-      case PlayerState.PAUSED:
+      case PlayerState.paused:
         await audioPlayer.resume();
+        break;
+      case PlayerState.stopped:
+        // TODO: Handle this case.
+        break;
+      case PlayerState.playing:
+        // TODO: Handle this case.
+        break;
+      case PlayerState.paused:
+        // TODO: Handle this case.
+        break;
+      case PlayerState.completed:
+        // TODO: Handle this case.
+        break;
+      case PlayerState.disposed:
+        // TODO: Handle this case.
         break;
     }
   }
@@ -94,7 +115,6 @@ class MyPlayerControllerState extends State<MyPlayerController> {
     setupPlayer();
   }
 
-
   onRepeatPressed() {
     setState(() {
       repeat = !repeat;
@@ -107,7 +127,7 @@ class MyPlayerControllerState extends State<MyPlayerController> {
     });
   }
 
-  Future<String> pathForInApp()  async {
+  Future<String> pathForInApp() async {
     String string = "";
     audioCache = AudioCache();
     if (audioCache != null) {
@@ -122,15 +142,15 @@ class MyPlayerControllerState extends State<MyPlayerController> {
   onStateChange(PlayerState state) {
     setState(() {
       switch (state) {
-        case PlayerState.PLAYING:
+        case PlayerState.playing:
           iconData = Icons.pause_circle;
           break;
-        case PlayerState.PAUSED:
+        case PlayerState.paused:
           iconData = Icons.play_circle;
           break;
-        case PlayerState.COMPLETED:
+        case PlayerState.completed:
           break;
-        case PlayerState.STOPPED:
+        case PlayerState.stopped:
           iconData = Icons.play_circle;
       }
     });
@@ -152,9 +172,12 @@ class MyPlayerControllerState extends State<MyPlayerController> {
     audioPlayer = AudioPlayer();
     audioPlayer.onPlayerStateChanged.listen(onStateChange);
     audioPlayer.onDurationChanged.listen(onDurationChange);
-    audioPlayer.onAudioPositionChanged.listen(onAudioPositionChanged);
-    final url = (song.mediaType == MediaType.internet) ? song.path : await pathForInApp();
-    await audioPlayer.play(url);
+    // audioPlayer.onAudioPositionChanged.listen();
+    audioPlayer.onPositionChanged.listen(onAudioPositionChanged);
+    final url = (song.mediaType == MediaType.internet)
+        ? song.path
+        : await pathForInApp();
+    await audioPlayer.play(url as Source);
   }
 
   clearPlayer() {
@@ -164,15 +187,16 @@ class MyPlayerControllerState extends State<MyPlayerController> {
     audioCache = null;
   }
 
- Song previousSong() {
-    final index = widget.playlist.indexWhere((song) => song.title == this.song.title);
+  Song previousSong() {
+    final index =
+        widget.playlist.indexWhere((song) => song.title == this.song.title);
     final newIndex = (index == 0) ? widget.playlist.length - 1 : index - 1;
     return widget.playlist[newIndex];
-
   }
 
   Song nextSong() {
-    final index = widget.playlist.indexWhere((song) => song.title == this.song.title);
+    final index =
+        widget.playlist.indexWhere((song) => song.title == this.song.title);
     final int newIndex = (index < widget.playlist.length - 1) ? index + 1 : 0;
     return widget.playlist[newIndex];
   }
