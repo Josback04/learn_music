@@ -152,6 +152,8 @@ class MyPlayerControllerState extends State<MyPlayerController> {
           break;
         case PlayerState.stopped:
           iconData = Icons.play_circle;
+        case PlayerState.disposed:
+        // TODO: Handle this case.
       }
     });
   }
